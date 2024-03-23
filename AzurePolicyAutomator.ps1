@@ -1,6 +1,13 @@
 ###AzurePolicyAutomator
 ## Repo: github.com/msdirtbag/AzurePolicyAutomator
 
+if (-not (Get-Module -ListAvailable -Name Az.Accounts)) {
+    Install-Module -Name Az.Accounts -Force -AllowClobber
+}
+
+# Connect to Azure with User Managed Identity
+Connect-AzAccount -Identity
+
 # Get all subscriptions in the tenant
 $Subscriptions = Get-AzSubscription
 
