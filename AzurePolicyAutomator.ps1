@@ -1,12 +1,19 @@
 ###AzurePolicyAutomator
 ## Repo: github.com/msdirtbag/AzurePolicyAutomator
 
+# Check if the Az.Accounts module is available
 if (-not (Get-Module -ListAvailable -Name Az.Accounts)) {
+    # If the Az.Accounts module is not available, install it
+    # The -Force parameter is used to suppress the user prompt
+    # The -AllowClobber parameter is used to allow the cmdlets in this module to overwrite commands in other modules with the same name
     Install-Module -Name Az.Accounts -Force -AllowClobber
 }
 
+# Retrieve the 'clientid' automation variable
+$clientid = Get-AutomationVariable -Name 'clientid'
+
 # Connect to Azure with User Managed Identity
-Connect-AzAccount -Identity
+Connect-AzAccount -Identity -AccountId $clientid
 
 # Get all subscriptions in the tenant
 $Subscriptions = Get-AzSubscription
@@ -37,6 +44,11 @@ foreach ($sub in $Subscriptions) {
         Start-AzPolicyRemediation -Name $Assignment.Name -PolicyAssignmentId $Assignment.PolicyAssignmentId -ResourceCount 10000 -ParallelDeploymentCount 30 -ResourceDiscoveryMode ReEvaluateCompliance -AsJob 
     }
 }
+
+# Output a message indicating that all remediation tasks have been started
+Write-Output "All DeployIfNotExists Azure Policy Remediation Tasks have been started"
+
+# End of script
 
 # Output a message indicating that all remediation tasks have been started
 Write-Output "All DeployIfNotExists Azure Policy Remediation Tasks have been started"
