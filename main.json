@@ -1,0 +1,275 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "subscriptionid": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "location": "[deployment().location]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "rg-apa-remediation",
+      "subscriptionId": "[parameters('subscriptionid')]",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "location": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/resourceGroups",
+              "apiVersion": "2023-07-01",
+              "name": "rg-apa-remediation",
+              "location": "[parameters('location')]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "umi-apa-remediation",
+      "subscriptionId": "[format('{0}', parameters('subscriptionid'))]",
+      "resourceGroup": "rg-apa-remediation",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "location": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2023-07-31-preview",
+              "name": "umi-apa-remediation",
+              "location": "[parameters('location')]"
+            }
+          ],
+          "outputs": {
+            "umirid": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'umi-apa-remediation')]"
+            },
+            "umicid": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'umi-apa-remediation'), '2023-07-31-preview').clientId]"
+            },
+            "umipid": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'umi-apa-remediation'), '2023-07-31-preview').principalId]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId(parameters('subscriptionid'), 'Microsoft.Resources/deployments', 'rg-apa-remediation')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "role-apa-remediation",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "principalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', format('{0}', parameters('subscriptionid')), 'rg-apa-remediation'), 'Microsoft.Resources/deployments', 'umi-apa-remediation'), '2022-09-01').outputs.umipid.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "principalId": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "contributorrole": "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(parameters('principalId'), variables('contributorrole'), managementGroup().id)]",
+              "properties": {
+                "roleDefinitionId": "[variables('contributorrole')]",
+                "principalId": "[parameters('principalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', format('{0}', parameters('subscriptionid')), 'rg-apa-remediation'), 'Microsoft.Resources/deployments', 'umi-apa-remediation')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "auto-apa-remediation",
+      "subscriptionId": "[format('{0}', parameters('subscriptionid'))]",
+      "resourceGroup": "rg-apa-remediation",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "umirid": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', format('{0}', parameters('subscriptionid')), 'rg-apa-remediation'), 'Microsoft.Resources/deployments', 'umi-apa-remediation'), '2022-09-01').outputs.umirid.value]"
+          },
+          "umicid": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', format('{0}', parameters('subscriptionid')), 'rg-apa-remediation'), 'Microsoft.Resources/deployments', 'umi-apa-remediation'), '2022-09-01').outputs.umicid.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "umirid": {
+              "type": "string"
+            },
+            "umicid": {
+              "type": "string"
+            },
+            "utcnow": {
+              "type": "string",
+              "defaultValue": "[utcNow()]"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Automation/automationAccounts",
+              "apiVersion": "2023-11-01",
+              "name": "auto-apa-remediation",
+              "location": "[parameters('location')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('umirid'))]": {}
+                }
+              },
+              "properties": {
+                "disableLocalAuth": true,
+                "publicNetworkAccess": false,
+                "sku": {
+                  "name": "basic"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Automation/automationAccounts/runbooks",
+              "apiVersion": "2023-11-01",
+              "name": "[format('{0}/{1}', 'auto-apa-remediation', 'AzurePolicyAutomator')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "logVerbose": false,
+                "logProgress": false,
+                "runbookType": "PowerShell72",
+                "publishContentLink": {
+                  "uri": "https://raw.githubusercontent.com/msdirtbag/AzurePolicyAutomator/main/AzurePolicyAutomator.ps1"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Automation/automationAccounts', 'auto-apa-remediation')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Automation/automationAccounts/variables",
+              "apiVersion": "2023-11-01",
+              "name": "[format('{0}/{1}', 'auto-apa-remediation', 'clientid')]",
+              "properties": {
+                "value": "[format('\"{0}\"', parameters('umicid'))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Automation/automationAccounts', 'auto-apa-remediation')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Automation/automationAccounts/schedules",
+              "apiVersion": "2023-11-01",
+              "name": "[format('{0}/{1}', 'auto-apa-remediation', 'Every12Hours')]",
+              "properties": {
+                "description": "Runs every 12 hours",
+                "startTime": "[dateTimeAdd(parameters('utcnow'), 'PT1H')]",
+                "expiryTime": "9999-12-31T00:00:00Z",
+                "interval": 12,
+                "frequency": "Hour",
+                "timeZone": "UTC"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Automation/automationAccounts', 'auto-apa-remediation')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Automation/automationAccounts/jobSchedules",
+              "apiVersion": "2022-08-08",
+              "name": "[format('{0}/{1}', 'auto-apa-remediation', guid(resourceGroup().id, subscription().subscriptionId, deployment().name, 'apa'))]",
+              "properties": {
+                "parameters": {},
+                "runbook": {
+                  "name": "AzurePolicyAutomator"
+                },
+                "schedule": {
+                  "name": "Every12Hours"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Automation/automationAccounts', 'auto-apa-remediation')]",
+                "[resourceId('Microsoft.Automation/automationAccounts/runbooks', 'auto-apa-remediation', 'AzurePolicyAutomator')]",
+                "[resourceId('Microsoft.Automation/automationAccounts/schedules', 'auto-apa-remediation', 'Every12Hours')]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', format('{0}', parameters('subscriptionid')), 'rg-apa-remediation'), 'Microsoft.Resources/deployments', 'umi-apa-remediation')]"
+      ]
+    }
+  ]
+}
