@@ -37,14 +37,14 @@ This project deploys the following Azure resource types:
 
 2. Specify the Azure Subscription.
 
-   <img src="./images/sub.png" alt="Sub" width="600" height="600">
+   <img src="./images/sub.png" alt="Sub">
 
 3. Review the deployed componets and wait for the 1st Job to start in the next 60 minutes. 
 
-   <img src="./deployed.png" alt="Deployed" width="600" height="600">
+   <img src="./deployed.png" alt="Deployed">
 
-   <img src="./rg.png" alt="RG" width="600" height="600">
+   <img src="./rg.png" alt="RG">
 
-   <img src="./jobs.png" alt="Jobs" width="600" height="600">
+   <img src="./jobs.png" alt="Jobs">
 
-   <img src="./tasks.png" alt="Tasks" width="600" height="600">
+   <img src="./tasks.png" alt="Tasks">
