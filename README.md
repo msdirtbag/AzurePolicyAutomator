@@ -18,10 +18,6 @@ DINE Azure Policies only apply once automatically and trys to enforce that state
 
 AzurePolicyAutomator enables eventually consistent Azure Policy goverance for All Policy assignments in the Azure tenant. 
 
-
-   ![Deploy](./images/overview.png)
-
-
 ## Overview
 
 This project deploys the following Azure resource types:
