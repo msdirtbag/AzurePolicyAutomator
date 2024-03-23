@@ -43,7 +43,7 @@ This project deploys the following Azure resource types:
 
    <img src="./deployed.png" alt="Deployed" width="600" height="600">
 
-   <img src="./rg.png" alt="Rg" width="600" height="600">
+   <img src="./rg.png" alt="RG" width="600" height="600">
 
    <img src="./jobs.png" alt="Jobs" width="600" height="600">
 
