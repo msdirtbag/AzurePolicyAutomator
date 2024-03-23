@@ -49,8 +49,3 @@ foreach ($sub in $Subscriptions) {
 Write-Output "All DeployIfNotExists Azure Policy Remediation Tasks have been started"
 
 # End of script
-
-# Output a message indicating that all remediation tasks have been started
-Write-Output "All DeployIfNotExists Azure Policy Remediation Tasks have been started"
-
-# End of script
